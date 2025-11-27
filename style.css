@@ -1,0 +1,350 @@
+:root {
+    --cor-fundo-escuro: #101216;
+    --cor-fundo-secundario: #1b1f27;
+    --cor-fundo-terciario: #0f1115;
+    --cor-texto-principal: #e0e0e0;
+    --cor-texto-secundario: #cccccc;
+    --cor-dourado-principal: #b38836;
+    --cor-amarelo-brilhante: #ffd100;
+    --cor-borda-cinza: #4a4a4a;
+    --cor-vermelho-horda: #8b0000;
+    --cor-vermelho-horda-hover: #a50000;
+    --cor-azul-alianca: #1e3a8a;
+    --cor-azul-alianca-hover: #2563eb;
+    --cor-azul-borda: #4facfe;
+    --cor-tipo-pet-fundo: #2c3e50;
+    --cor-tipo-pet-texto: #5dade2;
+    --cor-texto-ia: #a7f3d0;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    
+    background-color: var(--cor-fundo-escuro); 
+   
+    background-image: linear-gradient(rgba(16, 18, 22, 0.85), rgba(16, 18, 22, 0.85)), url('assets/background.jpg');
+    background-size: cover; 
+    background-position: center; 
+    background-attachment: fixed; 
+    background-repeat: no-repeat; 
+    color: var(--cor-texto-principal);
+    font-family: 'Open Sans', sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+}
+
+header {
+    text-align: center;
+    padding: 40px 20px;
+    border-bottom: 2px solid var(--cor-dourado-principal);
+    width: 100%;
+    background: linear-gradient(180deg, var(--cor-fundo-secundario) 0%, var(--cor-fundo-escuro) 100%);
+}
+
+h1 {
+    font-family: 'Cinzel', serif;
+    color: var(--cor-amarelo-brilhante);
+    font-size: 3rem;
+    text-shadow: 0 0 10px #ffd1004d; 
+}
+
+.subtitulo {
+    color: var(--cor-dourado-principal);
+    margin-top: 10px;
+    font-size: 1.1rem;
+}
+
+main {
+    width: 90%;
+    max-width: 800px;
+    margin-top: 30px;
+    flex-grow: 1; /
+}
+
+.busca-container {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 40px;
+    justify-content: center;
+}
+
+input {
+    padding: 15px;
+    width: 70%;
+    border-radius: 5px;
+    border: 1px solid var(--cor-borda-cinza);
+    background-color: var(--cor-fundo-secundario);
+    color: var(--cor-texto-principal);
+    font-size: 1rem;
+}
+
+button {
+    padding: 15px 25px;
+    background-color: var(--cor-vermelho-horda);
+    color: var(--cor-texto-principal);
+    border: 1px solid var(--cor-dourado-principal);
+    border-radius: 5px;
+    cursor: pointer;
+    font-family: 'Cinzel', serif;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+button:hover {
+    background-color: var(--cor-vermelho-horda-hover);
+    box-shadow: 0 0 10px #ff00004d;
+}
+
+
+.item-resultado {
+    background: var(--cor-fundo-secundario);
+    border: 1px solid var(--cor-borda-cinza);
+    border-left: 4px solid var(--cor-dourado-principal);
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px #00000080;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+/* Efeito de brilho sutil no card */
+.item-resultado::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, 
+        transparent, 
+        var(--cor-dourado-principal), 
+        transparent
+    );
+    opacity: 0.5;
+}
+
+.item-resultado:hover {
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.9);
+    transform: translateY(-2px);
+}
+
+.pet-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+    flex-wrap: nowrap;
+}
+
+/* Card da imagem do pet */
+.pet-imagem {
+    width: 70px;
+    height: 70px;
+    border-radius: 10px;
+    border: 2px solid var(--cor-dourado-principal);
+    box-shadow: 
+        0 4px 8px rgba(0, 0, 0, 0.6),
+        0 0 15px rgba(179, 136, 54, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    object-fit: cover;
+    background: linear-gradient(135deg, var(--cor-fundo-terciario) 0%, var(--cor-fundo-secundario) 100%);
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+    position: relative;
+    padding: 3px;
+    background-clip: padding-box;
+    display: block;
+}
+
+/* Efeito hover na imagem */
+.pet-imagem:hover {
+    transform: scale(1.1);
+    box-shadow: 
+        0 6px 12px rgba(0, 0, 0, 0.8),
+        0 0 25px rgba(179, 136, 54, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    border-color: var(--cor-amarelo-brilhante);
+}
+
+/* Container para o card da imagem com efeito de brilho */
+.pet-header::before {
+    content: '';
+    position: absolute;
+    width: 80px;
+    height: 80px;
+    border-radius: 12px;
+    background: radial-gradient(circle at center, rgba(179, 136, 54, 0.2) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: -1;
+}
+
+/* Ajuste para quando não há imagem - fallback para navegadores sem suporte a :has() */
+.pet-header:not(:has(.pet-imagem-container)) {
+    align-items: center;
+}
+
+.pet-info {
+    flex: 1;
+    min-width: 0; /* Permite que o texto quebre corretamente */
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    justify-content: center;
+}
+
+.pet-nome-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.pet-info h2 {
+    margin: 0;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+/* Container para a imagem com efeito de card */
+.pet-imagem-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    min-width: 70px;
+    min-height: 70px;
+}
+
+/* Placeholder quando não há imagem */
+.pet-imagem-placeholder {
+    width: 70px;
+    height: 70px;
+    border-radius: 10px;
+    border: 2px solid var(--cor-dourado-principal);
+    background: linear-gradient(135deg, var(--cor-fundo-terciario) 0%, var(--cor-fundo-secundario) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--cor-dourado-principal);
+    font-size: 2rem;
+    font-weight: bold;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.6);
+}
+
+.pet-imagem-container::after {
+    content: '';
+    position: absolute;
+    top: -3px;
+    left: -3px;
+    right: -3px;
+    bottom: -3px;
+    border-radius: 15px;
+    background: linear-gradient(135deg, 
+        rgba(179, 136, 54, 0.4) 0%, 
+        rgba(255, 209, 0, 0.2) 50%, 
+        rgba(179, 136, 54, 0.4) 100%
+    );
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    filter: blur(2px);
+}
+
+.pet-imagem-container:hover::after {
+    opacity: 1;
+}
+
+/* Ajuste para quando a imagem não carrega */
+.pet-imagem-container[style*="display: none"] {
+    display: none !important;
+}
+
+.item-resultado h2 {
+    font-family: 'Cinzel', serif;
+    color: var(--cor-amarelo-brilhante);
+    margin: 0;
+    line-height: 1.2;
+}
+
+.item-resultado a {
+    text-decoration: none;
+    color: inherit;
+}
+
+.tipo-pet {
+    background-color: var(--cor-tipo-pet-fundo);
+    color: var(--cor-tipo-pet-texto);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    font-weight: bold;
+    margin-bottom: 10px;
+    display: inline-block;
+    align-self: flex-start; /* Alinha ao início do contêiner flex */
+    white-space: nowrap; /* Evita que o texto quebre em duas linhas */
+    
+}
+
+.descricao-meta {
+    margin-bottom: 15px;
+    line-height: 1.6;
+    color: var(--cor-texto-secundario);
+}
+
+.btn-ia {
+    background-color: var(--cor-azul-alianca);
+    border: 1px solid var(--cor-azul-borda);
+    width: 100%;
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.btn-ia:hover {
+    background-color: var(--cor-azul-alianca-hover);
+    box-shadow: 0 0 15px #4facee66;
+}
+
+.box-resposta-ia {
+    margin-top: 15px;
+    padding: 15px;
+    background-color: var(--cor-fundo-terciario);
+    border: 1px dashed var(--cor-borda-cinza);
+    border-radius: 5px;
+    font-size: 0.95rem;
+    display: none; 
+    color: var(--cor-texto-ia);
+}
+
+
+.resultados-pesquisa {
+    min-height: 200px; 
+}
+
+.mensagem-inicial {
+    text-align: center;
+    color: var(--cor-dourado-principal);
+    font-size: 1.2rem;
+    padding: 40px 20px;
+}
+
+footer {
+    width: 100%;
+    text-align: center;
+    padding: 20px;
+    margin-top: 40px;
+    border-top: 1px solid var(--cor-borda-cinza);
+    background-color: var(--cor-fundo-secundario);
+}

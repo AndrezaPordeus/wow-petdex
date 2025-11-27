@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WoW Petdex</title>
+    <link rel="icon" href="./assets/favicon.png" type="image/x-icon">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <header>
+        <h1>WoW Petdex</h1>
+        <p class="subtitulo">A enciclopédia de mascotes de batalha com dados oficiais da Blizzard</p>
+    </header>
+
+    <main>
+
+        <section class="busca-container">
+            <input type="text" id="campo-pesquisa" placeholder="Digite um nome ou tipo (ex: Xu-fu; Fera)">
+            <button>Consultar Grimório</button>
+        </section>
+
+        <section id="resultados-pesquisa" class="resultados-pesquisa">
+            <p class="mensagem-inicial">O grimório está fechado. Faça uma pesquisa para revelar os segredos.</p>
+        </section>
+
+    </main>
+
+    <footer>
+        <p>| Desenvolvido por Andreza Alves Pordeus | Dados oficiais da Blizzard API |</p>
+    </footer>
+
+    <script type="module" src="./index.js"></script>
+</body>
+</html>
