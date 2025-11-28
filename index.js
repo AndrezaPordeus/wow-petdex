@@ -4,12 +4,7 @@
  * @returns {string} A URL completa da API.
  */
 function getApiUrl(endpoint) {
-    const porta = window.location.port || (window.location.protocol === 'https:' ? '443' : '80');
-    // Se a porta não for 3000, assume que o backend está rodando em localhost:3000
-    if (porta !== '3000' && porta !== '') {
-        return `http://localhost:3000${endpoint}`;
-    }
-    // Caso contrário, usa um caminho relativo
+    // Usa sempre um caminho relativo. O navegador se encarrega de usar o host atual (seja localhost ou o domínio no Render).
     return endpoint;
 }
 /**
