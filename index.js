@@ -4,8 +4,12 @@
  * @returns {string} A URL completa da API.
  */
 function getApiUrl(endpoint) {
-    // Usa sempre um caminho relativo. O navegador se encarrega de usar o host atual (seja localhost ou o domínio no Render).
-    return endpoint;
+    // Se estiver em ambiente de desenvolvimento (localhost), monta a URL completa.
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        return `http://localhost:3000${endpoint}`;
+    }
+    // Em produção (Render), usa um caminho relativo. O navegador usa o mesmo domínio.
+    return endpoint; 
 }
 /**
  * Função para chamar nosso próprio backend, que por sua vez chama a API da Blizzard.
@@ -44,6 +48,196 @@ async function gerarConteudoPeloBackend(prompt) {
     return data.text;
 }
 
+// Variável global para armazenar informações de paginação
+let paginacaoAtual = {
+    paginaAtual: 1,
+    totalPaginas: 1,
+    totalPets: 0,
+    limite: 9
+};
+
+/**
+ * Carrega pets iniciais para exibir na tela
+ */
+async function carregarPetsIniciais(pagina = 1) {
+    const section = document.getElementById("resultados-pesquisa");
+    section.innerHTML = `<p class="mensagem-inicial">🔮 Carregando criaturas do grimório... Página ${pagina}</p>`;
+
+    try {
+        const apiUrl = getApiUrl(`/api/pets-iniciais?pagina=${pagina}&limite=9`);
+        const response = await fetch(apiUrl);
+        
+        if (!response.ok) {
+            throw new Error(`Erro ao carregar pets: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        const dados = data.pets || [];
+        
+        // Atualiza informações de paginação
+        if (data.paginacao) {
+            paginacaoAtual = data.paginacao;
+        }
+        
+        console.log(`📦 Pets recebidos: ${dados.length} (Página ${pagina} de ${paginacaoAtual.totalPaginas})`);
+        
+        renderizarPetsComPaginacao(dados, section);
+    } catch (error) {
+        console.error("Erro ao carregar pets:", error);
+        section.innerHTML = `<p class="mensagem-inicial">❌ Não foi possível carregar as criaturas. ${error.message}</p>`;
+    }
+}
+
+/**
+ * Renderiza os pets com controles de paginação
+ */
+function renderizarPetsComPaginacao(dados, section) {
+    if (dados.length === 0) {
+        section.innerHTML = `<p class="mensagem-inicial">Nenhuma criatura encontrada.</p>`;
+        return;
+    }
+
+    // Renderiza os cards (retorna HTML como string)
+    let resultadosHtml = renderizarPets(dados, null);
+    
+    // Adiciona controles de paginação
+    const controlesPaginacao = criarControlesPaginacao();
+    
+    section.innerHTML = resultadosHtml + controlesPaginacao;
+}
+
+/**
+ * Cria os controles de paginação
+ */
+function criarControlesPaginacao() {
+    const { paginaAtual, totalPaginas, totalPets } = paginacaoAtual;
+    
+    if (totalPaginas <= 1) {
+        return '';
+    }
+    
+    let botoesHtml = '<div class="paginacao-container">';
+    botoesHtml += '<div class="paginacao-botoes">';
+    
+    // Botão Anterior
+    if (paginaAtual > 1) {
+        botoesHtml += `<button class="btn-paginacao" onclick="carregarPetsIniciais(${paginaAtual - 1})">← Anterior</button>`;
+    } else {
+        botoesHtml += `<button class="btn-paginacao" disabled>← Anterior</button>`;
+    }
+    
+    // Números das páginas
+    botoesHtml += '<div class="paginacao-numeros">';
+    
+    // Mostra até 5 números de página ao redor da página atual
+    let inicio = Math.max(1, paginaAtual - 2);
+    let fim = Math.min(totalPaginas, paginaAtual + 2);
+    
+    if (inicio > 1) {
+        botoesHtml += `<button class="btn-paginacao-numero" onclick="carregarPetsIniciais(1)">1</button>`;
+        if (inicio > 2) {
+            botoesHtml += `<span class="paginacao-ellipsis">...</span>`;
+        }
+    }
+    
+    for (let i = inicio; i <= fim; i++) {
+        if (i === paginaAtual) {
+            botoesHtml += `<button class="btn-paginacao-numero ativo" disabled>${i}</button>`;
+        } else {
+            botoesHtml += `<button class="btn-paginacao-numero" onclick="carregarPetsIniciais(${i})">${i}</button>`;
+        }
+    }
+    
+    if (fim < totalPaginas) {
+        if (fim < totalPaginas - 1) {
+            botoesHtml += `<span class="paginacao-ellipsis">...</span>`;
+        }
+        botoesHtml += `<button class="btn-paginacao-numero" onclick="carregarPetsIniciais(${totalPaginas})">${totalPaginas}</button>`;
+    }
+    
+    botoesHtml += '</div>';
+    
+    // Botão Próximo
+    if (paginaAtual < totalPaginas) {
+        botoesHtml += `<button class="btn-paginacao" onclick="carregarPetsIniciais(${paginaAtual + 1})">Próximo →</button>`;
+    } else {
+        botoesHtml += `<button class="btn-paginacao" disabled>Próximo →</button>`;
+    }
+    
+    botoesHtml += '</div>'; // Fecha paginacao-botoes
+    botoesHtml += `<div class="paginacao-info">Página ${paginaAtual} de ${totalPaginas} (${totalPets} pets no total)</div>`;
+    botoesHtml += '</div>'; // Fecha paginacao-container
+    
+    return botoesHtml;
+}
+
+/**
+ * Renderiza os cards de pets na tela (retorna HTML como string)
+ */
+function renderizarPets(dados, section) {
+    if (dados.length === 0) {
+        if (section) {
+            section.innerHTML = `<p class="mensagem-inicial">Nenhuma criatura encontrada.</p>`;
+        }
+        return '';
+    }
+
+    // Filtra dados inválidos e ordena os pets alfabeticamente pelo título
+    const dadosValidos = dados.filter(dado => dado && dado.titulo);
+    const dadosOrdenados = [...dadosValidos].sort((a, b) => {
+        const tituloA = a.titulo?.toLowerCase() || '';
+        const tituloB = b.titulo?.toLowerCase() || '';
+        return tituloA.localeCompare(tituloB, 'pt-BR');
+    });
+
+    let resultadosHtml = "";
+    for (const dado of dadosOrdenados) {
+        const titulo = dado.titulo || 'Sem nome';
+        const tipo = dado.tipo || 'Desconhecido';
+        const idResposta = `resposta-${titulo.replace(/\s+/g, '').toLowerCase()}`;
+        const tituloEscapado = titulo.replace(/'/g, "\\'");
+        const tipoEscapado = tipo.replace(/'/g, "\\'");
+        
+        const imagemHtml = dado.imagem 
+            ? `<div class="pet-imagem-container">
+                 <img src="${dado.imagem}" alt="${titulo}" class="pet-imagem" 
+                      onerror="console.error('Erro ao carregar imagem:', this.src); this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'70\\' height=\\'70\\'%3E%3Crect fill=\\'%231b1f27\\' width=\\'70\\' height=\\'70\\'/%3E%3Ctext x=\\'50%25\\' y=\\'50%25\\' text-anchor=\\'middle\\' dy=\\'.3em\\' fill=\\'%23b38836\\' font-size=\\'12\\'%3E?%3C/text%3E%3C/svg%3E';"
+                      onload="console.log('Imagem carregada com sucesso:', this.src.substring(0, 50) + '...')">
+               </div>`
+            : `<div class="pet-imagem-container">
+                 <div class="pet-imagem-placeholder">?</div>
+               </div>`;
+        
+        const link = dado.link || '#';
+        const descricao = dado.descricao || `Um ${tipo.toLowerCase()} de Azeroth.`;
+        
+        resultadosHtml += `
+            <div class="item-resultado">
+                <div class="pet-header">
+                    ${imagemHtml}
+                    <div class="pet-info">
+                        <div class="pet-nome-container">
+                            <h2><a href="${link}" target="_blank">${titulo} 🔗</a></h2>
+                        </div>
+                        <span class="tipo-pet">${tipo}</span>
+                    </div>
+                </div>
+                <p class="descricao-meta">${descricao}</p>
+                <button class="btn-ia" onclick="gerarEstrategia('${tituloEscapado}', '${tipoEscapado}', '${idResposta}')">
+                   🔮 Revelar Estratégia de Batalha
+                </button>
+                <div id="${idResposta}" class="box-resposta-ia"></div>
+            </div>
+        `;
+    }
+    
+    if (section) {
+        section.innerHTML = resultadosHtml;
+    }
+    
+    return resultadosHtml;
+}
+
 async function pesquisar() {
     const section = document.getElementById("resultados-pesquisa");
     const campoPesquisa = document.getElementById("campo-pesquisa").value.toLowerCase();
@@ -72,52 +266,9 @@ async function pesquisar() {
         const dados = JSON.parse(text);
         
         console.log('📦 Dados recebidos:', dados);
-        dados.forEach((dado, index) => {
-            console.log(`   Pet ${index + 1}: ${dado.titulo} - Imagem: ${dado.imagem ? 'SIM (' + dado.imagem.substring(0, 50) + '...)' : 'NÃO'}`);
-        });
-
-        if (dados.length === 0) {
-            section.innerHTML = `<p class="mensagem-inicial">Nenhuma criatura encontrada com esse nome no grimório.</p>`;
-            return;
-        }
-
-        let resultadosHtml = "";
-        for (const dado of dados) {
-            const idResposta = `resposta-${dado.titulo.replace(/\s+/g, '').toLowerCase()}`;
-            // Escapa aspas simples para evitar problemas no onclick
-            const tituloEscapado = dado.titulo.replace(/'/g, "\\'");
-            const tipoEscapado = dado.tipo.replace(/'/g, "\\'");
-            // Adiciona a imagem do pet se disponível, envolvida em um container
-            const imagemHtml = dado.imagem 
-                ? `<div class="pet-imagem-container">
-                     <img src="${dado.imagem}" alt="${dado.titulo}" class="pet-imagem" 
-                          onerror="console.error('Erro ao carregar imagem:', this.src); this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'70\\' height=\\'70\\'%3E%3Crect fill=\\'%231b1f27\\' width=\\'70\\' height=\\'70\\'/%3E%3Ctext x=\\'50%25\\' y=\\'50%25\\' text-anchor=\\'middle\\' dy=\\'.3em\\' fill=\\'%23b38836\\' font-size=\\'12\\'%3E?%3C/text%3E%3C/svg%3E';"
-                          onload="console.log('Imagem carregada com sucesso:', this.src.substring(0, 50) + '...')">
-                   </div>`
-                : `<div class="pet-imagem-container">
-                     <div class="pet-imagem-placeholder">?</div>
-                   </div>`;
-            
-            resultadosHtml += `
-                <div class="item-resultado">
-                    <div class="pet-header">
-                        ${imagemHtml}
-                        <div class="pet-info">
-                            <div class="pet-nome-container">
-                                <h2><a href="${dado.link}" target="_blank">${dado.titulo} 🔗</a></h2>
-                            </div>
-                            <span class="tipo-pet">${dado.tipo}</span>
-                        </div>
-                    </div>
-                    <p class="descricao-meta">${dado.descricao}</p>
-                    <button class="btn-ia" onclick="gerarEstrategia('${tituloEscapado}', '${tipoEscapado}', '${idResposta}')">
-                       🔮 Revelar Estratégia de Batalha
-                    </button>
-                    <div id="${idResposta}" class="box-resposta-ia"></div>
-                </div>
-            `;
-        }
-        section.innerHTML = resultadosHtml;
+        
+        // Para busca, renderiza todos os resultados sem paginação
+        renderizarPets(dados, section);
 
     } catch (error) {
         console.error("Erro ao buscar dados da API:", error);
@@ -190,6 +341,11 @@ async function gerarEstrategia(nomePet, tipoPet, idElemento) {
     }
 }
 
+// Carrega pets iniciais quando a página carregar
+document.addEventListener('DOMContentLoaded', () => {
+    carregarPetsIniciais();
+});
+
 // Adiciona o evento de clique ao botão de pesquisa
 document.querySelector('.busca-container button').addEventListener('click', pesquisar);
 
@@ -200,5 +356,6 @@ document.getElementById('campo-pesquisa').addEventListener('keypress', (event) =
     }
 });
 
-// Disponibiliza a função para os botões criados dinamicamente
+// Disponibiliza as funções para uso global
 window.gerarEstrategia = gerarEstrategia;
+window.carregarPetsIniciais = carregarPetsIniciais;

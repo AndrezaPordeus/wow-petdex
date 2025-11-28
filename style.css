@@ -62,10 +62,10 @@ h1 {
 }
 
 main {
-    width: 90%;
-    max-width: 800px;
+    width: 95%;
+    max-width: 1400px;
     margin-top: 30px;
-    flex-grow: 1; /
+    flex-grow: 1;
 }
 
 .busca-container {
@@ -108,12 +108,14 @@ button:hover {
     border: 1px solid var(--cor-borda-cinza);
     border-left: 4px solid var(--cor-dourado-principal);
     padding: 20px;
-    margin-bottom: 20px;
     border-radius: 8px;
     box-shadow: 0 4px 8px #00000080;
     position: relative;
     overflow: hidden;
     transition: all 0.3s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
 /* Efeito de brilho sutil no card */
@@ -299,13 +301,14 @@ button:hover {
     margin-bottom: 15px;
     line-height: 1.6;
     color: var(--cor-texto-secundario);
+    flex-grow: 1;
 }
 
 .btn-ia {
     background-color: var(--cor-azul-alianca);
     border: 1px solid var(--cor-azul-borda);
     width: 100%;
-    margin-top: 10px;
+    margin-top: auto;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -330,7 +333,29 @@ button:hover {
 
 
 .resultados-pesquisa {
-    min-height: 200px; 
+    min-height: 200px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+/* Responsividade para tablets */
+@media (max-width: 1024px) {
+    .resultados-pesquisa {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Responsividade para mobile */
+@media (max-width: 768px) {
+    main {
+        width: 95%;
+        max-width: 100%;
+    }
+    
+    .resultados-pesquisa {
+        grid-template-columns: 1fr;
+    }
 }
 
 .mensagem-inicial {
@@ -338,6 +363,9 @@ button:hover {
     color: var(--cor-dourado-principal);
     font-size: 1.2rem;
     padding: 40px 20px;
+    grid-column: 1 / -1;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 footer {
@@ -347,4 +375,107 @@ footer {
     margin-top: 40px;
     border-top: 1px solid var(--cor-borda-cinza);
     background-color: var(--cor-fundo-secundario);
+}
+
+/* Controles de paginação */
+.paginacao-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    margin: 40px auto 0;
+    padding: 20px;
+    background: var(--cor-fundo-secundario);
+    border-radius: 8px;
+    border: 1px solid var(--cor-borda-cinza);
+    max-width: fit-content;
+    grid-column: 1 / -1;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.paginacao-botoes {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: nowrap;
+}
+
+.paginacao-numeros {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: center;
+}
+
+.btn-paginacao {
+    padding: 10px 20px;
+    background-color: var(--cor-vermelho-horda);
+    color: var(--cor-texto-principal);
+    border: 1px solid var(--cor-dourado-principal);
+    border-radius: 5px;
+    cursor: pointer;
+    font-family: 'Cinzel', serif;
+    font-weight: bold;
+    transition: 0.3s;
+    font-size: 0.9rem;
+}
+
+.btn-paginacao:hover:not(:disabled) {
+    background-color: var(--cor-vermelho-horda-hover);
+    box-shadow: 0 0 10px #ff00004d;
+}
+
+.btn-paginacao:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-paginacao-numero {
+    padding: 8px 14px;
+    background-color: var(--cor-fundo-terciario);
+    color: var(--cor-texto-principal);
+    border: 1px solid var(--cor-borda-cinza);
+    border-radius: 5px;
+    cursor: pointer;
+    font-family: 'Open Sans', sans-serif;
+    font-weight: 600;
+    transition: 0.3s;
+    min-width: 40px;
+}
+
+.btn-paginacao-numero:hover:not(:disabled):not(.ativo) {
+    background-color: var(--cor-fundo-secundario);
+    border-color: var(--cor-dourado-principal);
+    color: var(--cor-amarelo-brilhante);
+}
+
+.btn-paginacao-numero.ativo {
+    background-color: var(--cor-dourado-principal);
+    color: var(--cor-fundo-escuro);
+    border-color: var(--cor-amarelo-brilhante);
+    cursor: default;
+    font-weight: bold;
+}
+
+.btn-paginacao-numero:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.paginacao-ellipsis {
+    color: var(--cor-texto-secundario);
+    padding: 0 5px;
+    font-weight: bold;
+}
+
+.paginacao-info {
+    color: var(--cor-texto-secundario);
+    font-size: 0.9rem;
+    text-align: center;
+    width: 100%;
+    margin-top: 0;
 }
