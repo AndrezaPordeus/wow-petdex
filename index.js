@@ -17,6 +17,53 @@ function getApiUrl(endpoint) {
  * @param {string} prompt O prompt com o termo de busca.
  * @returns {Promise<string>} O texto da resposta da API.
  */
+function renderizarCards(pets) {
+    const section = document.getElementById("resultados-pesquisa");
+
+    if (pets.length === 0) {
+        section.innerHTML = `<p class="mensagem-inicial">Nenhuma criatura encontrada com esse nome no grimório.</p>`;
+        return;
+    }
+
+    let resultadosHtml = "";
+    for (const dado of pets) {
+        const idResposta = `resposta-${dado.titulo.replace(/\s+/g, '').toLowerCase()}`;
+        // Escapa aspas simples para evitar problemas no onclick
+        const tituloEscapado = dado.titulo.replace(/'/g, "\\'");
+        const tipoEscapado = dado.tipo.replace(/'/g, "\\'");
+        // Adiciona a imagem do pet se disponível, envolvida em um container
+        const imagemHtml = dado.imagem
+            ? `<div class="pet-imagem-container">
+                    <img src="${dado.imagem}" alt="${dado.titulo}" class="pet-imagem"
+                        onerror="console.error('Erro ao carregar imagem:', this.src); this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'70\\' height=\\'70\\'%3E%3Crect fill=\\'%231b1f27\\' width=\\'70\\' height=\\'70\\'/%3E%3Ctext x=\\'50%25\\' y=\\'50%25\\' text-anchor=\\'middle\\' dy=\\'.3em\\' fill=\\'%23b38836\\' font-size=\\'12\\'%3E?%3C/text%3E%3C/svg%3E';"
+                        onload="console.log('Imagem carregada com sucesso:', this.src.substring(0, 50) + '...')">
+                </div>`
+            : `<div class="pet-imagem-container">
+                    <div class="pet-imagem-placeholder">?</div>
+                </div>`;
+
+        resultadosHtml += `
+            <div class="item-resultado">
+                <div class="pet-header">
+                    ${imagemHtml}
+                    <div class="pet-info">
+                        <div class="pet-nome-container">
+                            <h2><a href="${dado.link}" target="_blank">${dado.titulo} 🔗</a></h2>
+                        </div>
+                        <span class="tipo-pet">${dado.tipo}</span>
+                    </div>
+                </div>
+                <p class="descricao-meta">${dado.descricao}</p>
+                <button class="btn-ia" onclick="gerarEstrategia('${tituloEscapado}', '${tipoEscapado}', '${idResposta}')">
+                    🔮 Revelar Estratégia de Batalha
+                </button>
+                <div id="${idResposta}" class="box-resposta-ia"></div>
+            </div>
+        `;
+    }
+    section.innerHTML = resultadosHtml;
+}
+
 async function gerarConteudoPeloBackend(prompt) {
     const apiUrl = getApiUrl('/api/busca');
     const response = await fetch(apiUrl, {
@@ -49,24 +96,22 @@ async function gerarConteudoPeloBackend(prompt) {
     return data.text;
 }
 
-async function pesquisar() {
+async function buscarPets(termo) {
     const section = document.getElementById("resultados-pesquisa");
-    const campoPesquisa = document.getElementById("campo-pesquisa").value.toLowerCase();
 
-    if (!campoPesquisa) {
-        section.innerHTML = `<p class="mensagem-inicial">Você precisa digitar o nome de uma criatura para consultar o grimório.</p>`;
-        return;
-    }
+    // Se termo for vazio (espaço), mostra mensagem diferente
+    const mensagemCarregando = termo.trim() === ''
+        ? "🔮 Invocando mascotes do grimório..."
+        : "🔮 Consultando o Grimório com magia arcana... Aguarde...";
 
-    section.innerHTML = `<p class="mensagem-inicial">🔮 Consultando o Grimório com magia arcana... Aguarde...</p>`;
+    section.innerHTML = `<p class="mensagem-inicial">${mensagemCarregando}</p>`;
 
     try {
         // Passa o termo de busca diretamente para a API
-        const prompt = `termo: "${campoPesquisa}"`;
+        const prompt = `termo: "${termo}"`;
         
         let text = await gerarConteudoPeloBackend(prompt);
 
-        
         text = text.trim();
         if (text.startsWith("```json")) {
             text = text.replace(/^```json\s*/, "").replace(/\s*```$/, "");
@@ -74,55 +119,14 @@ async function pesquisar() {
             text = text.replace(/^```\s*/, "").replace(/\s*```$/, "");
         }
 
-        const dados = JSON.parse(text);
+        const dadosResposta = JSON.parse(text);
         
-        console.log('📦 Dados recebidos:', dados);
-        dados.forEach((dado, index) => {
+        console.log('📦 Dados recebidos:', dadosResposta);
+        dadosResposta.forEach((dado, index) => {
             console.log(`   Pet ${index + 1}: ${dado.titulo} - Imagem: ${dado.imagem ? 'SIM (' + dado.imagem.substring(0, 50) + '...)' : 'NÃO'}`);
         });
 
-        if (dados.length === 0) {
-            section.innerHTML = `<p class="mensagem-inicial">Nenhuma criatura encontrada com esse nome no grimório.</p>`;
-            return;
-        }
-
-        let resultadosHtml = "";
-        for (const dado of dados) {
-            const idResposta = `resposta-${dado.titulo.replace(/\s+/g, '').toLowerCase()}`;
-            // Escapa aspas simples para evitar problemas no onclick
-            const tituloEscapado = dado.titulo.replace(/'/g, "\\'");
-            const tipoEscapado = dado.tipo.replace(/'/g, "\\'");
-            // Adiciona a imagem do pet se disponível, envolvida em um container
-            const imagemHtml = dado.imagem 
-                ? `<div class="pet-imagem-container">
-                     <img src="${dado.imagem}" alt="${dado.titulo}" class="pet-imagem" 
-                          onerror="console.error('Erro ao carregar imagem:', this.src); this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'70\\' height=\\'70\\'%3E%3Crect fill=\\'%231b1f27\\' width=\\'70\\' height=\\'70\\'/%3E%3Ctext x=\\'50%25\\' y=\\'50%25\\' text-anchor=\\'middle\\' dy=\\'.3em\\' fill=\\'%23b38836\\' font-size=\\'12\\'%3E?%3C/text%3E%3C/svg%3E';"
-                          onload="console.log('Imagem carregada com sucesso:', this.src.substring(0, 50) + '...')">
-                   </div>`
-                : `<div class="pet-imagem-container">
-                     <div class="pet-imagem-placeholder">?</div>
-                   </div>`;
-            
-            resultadosHtml += `
-                <div class="item-resultado">
-                    <div class="pet-header">
-                        ${imagemHtml}
-                        <div class="pet-info">
-                            <div class="pet-nome-container">
-                                <h2><a href="${dado.link}" target="_blank">${dado.titulo} 🔗</a></h2>
-                            </div>
-                            <span class="tipo-pet">${dado.tipo}</span>
-                        </div>
-                    </div>
-                    <p class="descricao-meta">${dado.descricao}</p>
-                    <button class="btn-ia" onclick="gerarEstrategia('${tituloEscapado}', '${tipoEscapado}', '${idResposta}')">
-                       🔮 Revelar Estratégia de Batalha
-                    </button>
-                    <div id="${idResposta}" class="box-resposta-ia"></div>
-                </div>
-            `;
-        }
-        section.innerHTML = resultadosHtml;
+        renderizarCards(dadosResposta);
 
     } catch (error) {
         console.error("Erro ao buscar dados da API:", error);
@@ -150,6 +154,18 @@ async function pesquisar() {
         }
         section.innerHTML = `<p class="mensagem-inicial">${mensagemErro}</p>`;
     }
+}
+
+async function pesquisar() {
+    const section = document.getElementById("resultados-pesquisa");
+    const campoPesquisa = document.getElementById("campo-pesquisa").value.toLowerCase();
+
+    if (!campoPesquisa) {
+        section.innerHTML = `<p class="mensagem-inicial">Você precisa digitar o nome de uma criatura para consultar o grimório.</p>`;
+        return;
+    }
+
+    await buscarPets(campoPesquisa);
 }
 
 async function gerarEstrategia(nomePet, tipoPet, idElemento) {
@@ -207,3 +223,7 @@ document.getElementById('campo-pesquisa').addEventListener('keypress', (event) =
 
 // Disponibiliza a função para os botões criados dinamicamente
 window.gerarEstrategia = gerarEstrategia;
+
+// Renderiza os cards iniciais
+// Usa um espaço vazio para buscar os primeiros pets da lista (sem filtro)
+buscarPets(" ");
