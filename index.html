@@ -20,8 +20,22 @@
     <main>
 
         <section class="busca-container">
+            <button id="btn-voltar-inicio" class="btn-voltar">Início</button>
             <input type="text" id="campo-pesquisa" placeholder="Sobre qual pet você deseja saber?">
-            <button>Consultar Grimório</button>
+            <select id="filtro-tipo" class="filtro-tipo">
+                <option value="">Todos os tipos</option>
+                <option value="Fera">Fera</option>
+                <option value="Dragão">Dragão</option>
+                <option value="Voador">Voador</option>
+                <option value="Mágico">Mágico</option>
+                <option value="Mecânico">Mecânico</option>
+                <option value="Morto-vivo">Morto-vivo</option>
+                <option value="Aquático">Aquático</option>
+                <option value="Elemental">Elemental</option>
+                <option value="Bicho">Bicho</option>
+                <option value="Humanóide">Humanóide</option>
+            </select>
+            <button id="btn-consultar">Consultar Grimório</button>
         </section>
 
         <section id="resultados-pesquisa" class="resultados-pesquisa">

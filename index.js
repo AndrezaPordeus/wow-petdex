@@ -62,6 +62,9 @@ let paginacaoAtual = {
 async function carregarPetsIniciais(pagina = 1) {
     const section = document.getElementById("resultados-pesquisa");
     section.innerHTML = `<p class="mensagem-inicial">🔮 Carregando criaturas do grimório... Página ${pagina}</p>`;
+    
+    // Limpa dadosCompletos para indicar que estamos na página inicial (não em busca)
+    paginacaoAtual.dadosCompletos = null;
 
     try {
         const apiUrl = getApiUrl(`/api/pets-iniciais?pagina=${pagina}&limite=9`);
@@ -107,21 +110,46 @@ function renderizarPetsComPaginacao(dados, section) {
 }
 
 /**
+ * Pagina os resultados da busca (dados já carregados)
+ */
+function paginarResultadosBusca(pagina) {
+    const { dadosCompletos, limite } = paginacaoAtual;
+    
+    if (!dadosCompletos || dadosCompletos.length === 0) {
+        return;
+    }
+    
+    const inicio = (pagina - 1) * limite;
+    const fim = inicio + limite;
+    const dadosPagina = dadosCompletos.slice(inicio, fim);
+    
+    // Atualiza a página atual
+    paginacaoAtual.paginaAtual = pagina;
+    
+    // Renderiza a página
+    const section = document.getElementById("resultados-pesquisa");
+    renderizarPetsComPaginacao(dadosPagina, section);
+}
+
+/**
  * Cria os controles de paginação
  */
 function criarControlesPaginacao() {
-    const { paginaAtual, totalPaginas, totalPets } = paginacaoAtual;
+    const { paginaAtual, totalPaginas, totalPets, dadosCompletos } = paginacaoAtual;
     
     if (totalPaginas <= 1) {
         return '';
     }
+    
+    // Determina qual função usar para navegação
+    const funcaoNavegacao = dadosCompletos ? 'paginarResultadosBusca' : 'carregarPetsIniciais';
     
     let botoesHtml = '<div class="paginacao-container">';
     botoesHtml += '<div class="paginacao-botoes">';
     
     // Botão Anterior
     if (paginaAtual > 1) {
-        botoesHtml += `<button class="btn-paginacao" onclick="carregarPetsIniciais(${paginaAtual - 1})">← Anterior</button>`;
+        botoesHtml += `<button class="btn-paginacao" onclick="${funcaoNavegacao}(${paginaAtual - 1})">← Anterior</button>`;
     } else {
         botoesHtml += `<button class="btn-paginacao" disabled>← Anterior</button>`;
     }
@@ -134,7 +162,7 @@ function criarControlesPaginacao() {
     let fim = Math.min(totalPaginas, paginaAtual + 2);
     
     if (inicio > 1) {
-        botoesHtml += `<button class="btn-paginacao-numero" onclick="carregarPetsIniciais(1)">1</button>`;
+        botoesHtml += `<button class="btn-paginacao-numero" onclick="${funcaoNavegacao}(1)">1</button>`;
         if (inicio > 2) {
             botoesHtml += `<span class="paginacao-ellipsis">...</span>`;
         }
@@ -144,7 +172,7 @@ function criarControlesPaginacao() {
         if (i === paginaAtual) {
             botoesHtml += `<button class="btn-paginacao-numero ativo" disabled>${i}</button>`;
         } else {
-            botoesHtml += `<button class="btn-paginacao-numero" onclick="carregarPetsIniciais(${i})">${i}</button>`;
+            botoesHtml += `<button class="btn-paginacao-numero" onclick="${funcaoNavegacao}(${i})">${i}</button>`;
         }
     }
     
@@ -152,20 +180,20 @@ function criarControlesPaginacao() {
         if (fim < totalPaginas - 1) {
             botoesHtml += `<span class="paginacao-ellipsis">...</span>`;
         }
-        botoesHtml += `<button class="btn-paginacao-numero" onclick="carregarPetsIniciais(${totalPaginas})">${totalPaginas}</button>`;
+        botoesHtml += `<button class="btn-paginacao-numero" onclick="${funcaoNavegacao}(${totalPaginas})">${totalPaginas}</button>`;
     }
     
     botoesHtml += '</div>';
     
     // Botão Próximo
     if (paginaAtual < totalPaginas) {
-        botoesHtml += `<button class="btn-paginacao" onclick="carregarPetsIniciais(${paginaAtual + 1})">Próximo →</button>`;
+        botoesHtml += `<button class="btn-paginacao" onclick="${funcaoNavegacao}(${paginaAtual + 1})">Próximo →</button>`;
     } else {
         botoesHtml += `<button class="btn-paginacao" disabled>Próximo →</button>`;
     }
     
     botoesHtml += '</div>'; // Fecha paginacao-botoes
-    botoesHtml += `<div class="paginacao-info">Página ${paginaAtual} de ${totalPaginas} (${totalPets} pets no total)</div>`;
+    botoesHtml += `<div class="paginacao-info">Página ${paginaAtual} de ${totalPaginas} (${totalPets} encontrados)</div>`;
     botoesHtml += '</div>'; // Fecha paginacao-container
     
     return botoesHtml;
@@ -241,17 +269,28 @@ function renderizarPets(dados, section) {
 async function pesquisar() {
     const section = document.getElementById("resultados-pesquisa");
     const campoPesquisa = document.getElementById("campo-pesquisa").value.toLowerCase();
+    const filtroTipo = document.getElementById("filtro-tipo").value;
 
-    if (!campoPesquisa) {
-        section.innerHTML = `<p class="mensagem-inicial">Você precisa digitar o nome de uma criatura para consultar o grimório.</p>`;
+    // Permite busca apenas por tipo ou por nome, ou ambos
+    if (!campoPesquisa && !filtroTipo) {
+        section.innerHTML = `<p class="mensagem-inicial">Você precisa digitar o nome de uma criatura ou selecionar um tipo para consultar o grimório.</p>`;
         return;
     }
 
     section.innerHTML = `<p class="mensagem-inicial">🔮 Consultando o Grimório com magia arcana... Aguarde...</p>`;
 
     try {
-        // Passa o termo de busca diretamente para a API
-        const prompt = `termo: "${campoPesquisa}"`;
+        // Passa o termo de busca e o filtro de tipo para a API
+        let prompt = '';
+        if (campoPesquisa) {
+            prompt += `termo: "${campoPesquisa}"`;
+        }
+        if (filtroTipo) {
+            if (prompt) prompt += ' ';
+            prompt += `tipo: "${filtroTipo}"`;
+        }
+        
+        console.log(`📤 Enviando prompt: "${prompt}"`);
         
         let text = await gerarConteudoPeloBackend(prompt);
 
@@ -267,8 +306,27 @@ async function pesquisar() {
         
         console.log('📦 Dados recebidos:', dados);
         
-        // Para busca, renderiza todos os resultados sem paginação
-        renderizarPets(dados, section);
+        // Se houver mais de 9 pets, usa paginação
+        if (dados.length > 9) {
+            // Atualiza informações de paginação para os resultados da busca
+            const limite = 9;
+            const totalPaginas = Math.ceil(dados.length / limite);
+            paginacaoAtual = {
+                paginaAtual: 1,
+                totalPaginas: totalPaginas,
+                totalPets: dados.length,
+                limite: limite,
+                dadosCompletos: dados // Armazena todos os dados para paginação
+            };
+            
+            // Renderiza apenas a primeira página
+            const primeiraPagina = dados.slice(0, limite);
+            renderizarPetsComPaginacao(primeiraPagina, section);
+        } else {
+            // Se houver 9 ou menos pets, limpa dadosCompletos e renderiza sem paginação
+            paginacaoAtual.dadosCompletos = null;
+            renderizarPets(dados, section);
+        }
 
     } catch (error) {
         console.error("Erro ao buscar dados da API:", error);
@@ -341,13 +399,28 @@ async function gerarEstrategia(nomePet, tipoPet, idElemento) {
     }
 }
 
+/**
+ * Volta para a página inicial
+ */
+function voltarPaginaInicial() {
+    // Limpa os campos de busca
+    document.getElementById("campo-pesquisa").value = '';
+    document.getElementById("filtro-tipo").value = '';
+    
+    // Recarrega os pets iniciais na página 1
+    carregarPetsIniciais(1);
+}
+
 // Carrega pets iniciais quando a página carregar
 document.addEventListener('DOMContentLoaded', () => {
     carregarPetsIniciais();
 });
 
 // Adiciona o evento de clique ao botão de pesquisa
-document.querySelector('.busca-container button').addEventListener('click', pesquisar);
+document.getElementById('btn-consultar').addEventListener('click', pesquisar);
+
+// Adiciona o evento de clique ao botão de voltar
+document.getElementById('btn-voltar-inicio').addEventListener('click', voltarPaginaInicial);
 
 // Permite que a tecla Enter no campo de texto também inicie a pesquisa
 document.getElementById('campo-pesquisa').addEventListener('keypress', (event) => {
@@ -359,3 +432,4 @@ document.getElementById('campo-pesquisa').addEventListener('keypress', (event) =
 // Disponibiliza as funções para uso global
 window.gerarEstrategia = gerarEstrategia;
 window.carregarPetsIniciais = carregarPetsIniciais;
+window.paginarResultadosBusca = paginarResultadosBusca;
