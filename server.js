@@ -335,8 +335,8 @@ async function buscarPetsIniciais() {
     
     const pets = indexData.pets || [];
     
-    // Limita a apenas 27 pets (9 + 9 + 9 = 27 pets em 3 páginas)
-    const petsSelecionados = pets.slice(0, 27);
+    // Limita a apenas 27 pets (9 + 9 + 9 = 27 pets em 3 páginas) - pega os últimos adicionados
+    const petsSelecionados = pets.slice(-27);
 
     // Busca detalhes de cada pet
     const finalNamespace = workingNamespace || `static-${BLIZZARD_REGION}`;

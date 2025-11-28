@@ -363,9 +363,6 @@ button:hover {
     color: var(--cor-dourado-principal);
     font-size: 1.2rem;
     padding: 40px 20px;
-    grid-column: 1 / -1;
-    width: 100%;
-    box-sizing: border-box;
 }
 
 footer {
