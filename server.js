@@ -2384,12 +2384,11 @@ app.post("/api/busca", async (req, res) => {
       console.log(`  Título: ${pet.titulo || 'SEM TÍTULO'}`);
       console.log(`  Tipo: ${pet.tipo || 'SEM TIPO'}`);
       console.log(`  Imagem: ${pet.imagem ? 'SIM' : 'NÃO'}`);
-      console.log(`  Vida: ${pet.vida !== undefined ? pet.vida : 'UNDEFINED'}`);
-      console.log(`  Dano: ${pet.dano !== undefined ? pet.dano : 'UNDEFINED'}`);
-      console.log(`  Velocidade: ${pet.velocidade !== undefined ? pet.velocidade : 'UNDEFINED'}`);
-      console.log(`  Qualidade: ${pet.qualidade || 'UNDEFINED'}`);
-      console.log(`  Breeds: ${pet.breeds ? JSON.stringify(pet.breeds) : 'UNDEFINED'}`);
+      console.log(`  É de Combate: ${pet.ehDeCombate !== undefined ? pet.ehDeCombate : 'UNDEFINED'}`);
+      console.log(`  É Capturável: ${pet.ehCapturavel !== undefined ? pet.ehCapturavel : 'UNDEFINED'}`);
+      console.log(`  É Negociável: ${pet.ehNegociavel !== undefined ? pet.ehNegociavel : 'UNDEFINED'}`);
       console.log(`  Onde obter: ${pet.ondeObter || 'UNDEFINED'}`);
+      console.log(`  Habilidades: ${pet.habilidades ? pet.habilidades.length : 0}`);
     });
     
     // Debug: log do primeiro pet completo
