@@ -218,26 +218,195 @@ function renderizarPets(dados, section) {
         return tituloA.localeCompare(tituloB, 'pt-BR');
     });
 
+    // Função auxiliar para escapar HTML
+    const escapeHtml = (text) => {
+        if (!text) return '';
+        return String(text)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    };
+    
     let resultadosHtml = "";
     for (const dado of dadosOrdenados) {
         const titulo = dado.titulo || 'Sem nome';
         const tipo = dado.tipo || 'Desconhecido';
-        const idResposta = `resposta-${titulo.replace(/\s+/g, '').toLowerCase()}`;
-        const tituloEscapado = titulo.replace(/'/g, "\\'");
-        const tipoEscapado = tipo.replace(/'/g, "\\'");
         
+        // Define variáveis HTML escapadas primeiro (antes de serem usadas)
+        const tituloHtml = escapeHtml(titulo);
+        const tipoHtml = escapeHtml(tipo);
+        
+        // Cria um ID seguro removendo todos os caracteres especiais
+        const idResposta = `resposta-${titulo.replace(/[^a-zA-Z0-9]/g, '').toLowerCase().substring(0, 30)}`;
+        // Escapa corretamente para uso em atributos HTML/JavaScript - precisa escapar para JavaScript dentro de HTML
+        const tituloEscapado = titulo
+            .replace(/\\/g, '\\\\')  // Escapa barras invertidas primeiro
+            .replace(/'/g, "\\'")    // Escapa aspas simples
+            .replace(/"/g, '\\"')    // Escapa aspas duplas
+            .replace(/\n/g, ' ')     // Remove quebras de linha
+            .replace(/\r/g, '')      // Remove carriage return
+            .replace(/</g, '&lt;')   // Escapa <
+            .replace(/>/g, '&gt;'); // Escapa >
+        const tipoEscapado = tipo
+            .replace(/\\/g, '\\\\')
+            .replace(/'/g, "\\'")
+            .replace(/"/g, '\\"')
+            .replace(/\n/g, ' ')
+            .replace(/\r/g, '')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+        
+        const imagemUrlEscapada = escapeHtml(dado.imagem || '');
         const imagemHtml = dado.imagem 
             ? `<div class="pet-imagem-container">
-                 <img src="${dado.imagem}" alt="${titulo}" class="pet-imagem" 
-                      onerror="console.error('Erro ao carregar imagem:', this.src); this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'70\\' height=\\'70\\'%3E%3Crect fill=\\'%231b1f27\\' width=\\'70\\' height=\\'70\\'/%3E%3Ctext x=\\'50%25\\' y=\\'50%25\\' text-anchor=\\'middle\\' dy=\\'.3em\\' fill=\\'%23b38836\\' font-size=\\'12\\'%3E?%3C/text%3E%3C/svg%3E';"
-                      onload="console.log('Imagem carregada com sucesso:', this.src.substring(0, 50) + '...')">
+                 <img src="${imagemUrlEscapada}" alt="${tituloHtml}" class="pet-imagem" 
+                      onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=&quot;http://www.w3.org/2000/svg&quot; width=&quot;70&quot; height=&quot;70&quot;%3E%3Crect fill=&quot;%231b1f27&quot; width=&quot;70&quot; height=&quot;70&quot;/%3E%3Ctext x=&quot;50%25&quot; y=&quot;50%25&quot; text-anchor=&quot;middle&quot; dy=&quot;.3em&quot; fill=&quot;%23b38836&quot; font-size=&quot;12&quot;%3E?%3C/text%3E%3C/svg%3E';">
                </div>`
             : `<div class="pet-imagem-container">
                  <div class="pet-imagem-placeholder">?</div>
                </div>`;
         
         const link = dado.link || '#';
-        const descricao = dado.descricao || `Um ${tipo.toLowerCase()} de Azeroth.`;
+        const descricao = escapeHtml(dado.descricao || `Um ${tipo.toLowerCase()} de Azeroth.`);
+        
+        // Informações adicionais (apenas se disponíveis - resultados de busca)
+        // Debug: verifica se os dados estão presentes
+        console.log(`Pet: ${titulo}`, JSON.stringify({
+            habilidades: dado.habilidades?.length || 0,
+            ehDeCombate: dado.ehDeCombate,
+            ehCapturavel: dado.ehCapturavel,
+            ehNegociavel: dado.ehNegociavel,
+            ondeObter: dado.ondeObter
+        }));
+        
+        // Cria um ID único para o container expansível
+        const infoId = `info-${titulo.replace(/[^a-zA-Z0-9]/g, '').toLowerCase().substring(0, 30)}-${Math.random().toString(36).substr(2, 9)}`;
+        
+        let infoAdicionalHtml = '';
+        let infoForaCardHtml = '';
+        
+        // Verifica se há habilidades ou outras informações para exibir
+        const temHabilidades = dado.habilidades && Array.isArray(dado.habilidades) && dado.habilidades.length > 0;
+        const temOutrasInfo = dado.ehDeCombate !== undefined || dado.ehCapturavel !== undefined || dado.ehNegociavel !== undefined || dado.ondeObter;
+        const ehDeCombate = dado.ehDeCombate === true;
+        
+        // Card de habilidades (expansível)
+        if (temHabilidades || !ehDeCombate) {
+            // Determina o texto do botão: "Habilidades" se não é de combate ou se tem habilidades, "Atributos" caso contrário
+            const textoBotao = (!ehDeCombate || temHabilidades) ? 'Habilidades' : 'Atributos';
+            
+            // Botão para expandir/contrair
+            infoAdicionalHtml = `
+                <button class="btn-expandir-atributos" onclick="toggleAtributos('${infoId}')" aria-expanded="false">
+                    <span class="btn-expandir-texto">${textoBotao}</span>
+                    <span class="btn-expandir-icone">▼</span>
+                </button>
+                <div id="${infoId}" class="pet-info-adicional collapsed">
+            `;
+            
+            // Habilidades
+            if (temHabilidades && ehDeCombate) {
+                // Se é de combate e tem habilidades, mostra as habilidades
+                infoAdicionalHtml += '<div class="pet-habilidades">';
+                infoAdicionalHtml += '<div class="habilidades-grid">';
+                
+                dado.habilidades.forEach((habilidade, index) => {
+                    const nomeHabilidade = escapeHtml(habilidade.nome || `Habilidade ${index + 1}`);
+                    const imagemHabilidade = habilidade.imagem || '';
+                    const imagemUrlEscapada = escapeHtml(imagemHabilidade);
+                    
+                    infoAdicionalHtml += '<div class="habilidade-item">';
+                    
+                    // Imagem da habilidade
+                    if (imagemHabilidade) {
+                        infoAdicionalHtml += `
+                            <div class="habilidade-imagem-container">
+                                <img src="${imagemUrlEscapada}" alt="${nomeHabilidade}" class="habilidade-imagem"
+                                     onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=&quot;http://www.w3.org/2000/svg&quot; width=&quot;56&quot; height=&quot;56&quot;%3E%3Crect fill=&quot;%231b1f27&quot; width=&quot;56&quot; height=&quot;56&quot;/%3E%3Ctext x=&quot;50%25&quot; y=&quot;50%25&quot; text-anchor=&quot;middle&quot; dy=&quot;.3em&quot; fill=&quot;%23b38836&quot; font-size=&quot;10&quot;%3E?%3C/text%3E%3C/svg%3E';">
+                            </div>
+                        `;
+                    } else {
+                        infoAdicionalHtml += `
+                            <div class="habilidade-imagem-container">
+                                <div class="habilidade-imagem-placeholder">?</div>
+                            </div>
+                        `;
+                    }
+                    
+                    // Nome da habilidade
+                    infoAdicionalHtml += `
+                        <div class="habilidade-info">
+                            <div class="habilidade-nome">${nomeHabilidade}</div>
+                        </div>
+                    `;
+                    
+                    infoAdicionalHtml += '</div>';
+                });
+                
+                infoAdicionalHtml += '</div></div>';
+            } else if (!ehDeCombate) {
+                // Se não é de combate (uma ou menos habilidade), SEMPRE mostra a mensagem
+                infoAdicionalHtml += '<div class="pet-habilidades">';
+                infoAdicionalHtml += '<div class="pet-sem-combate">';
+                infoAdicionalHtml += '<p class="mensagem-sem-combate">Esta criatura não pode lutar</p>';
+                infoAdicionalHtml += '</div></div>';
+            }
+            
+            infoAdicionalHtml += '</div>';
+        }
+        
+        // Informações que aparecem fora do card de habilidades
+        if (temOutrasInfo) {
+            // Combate
+            if (dado.ehDeCombate !== undefined) {
+                const ehDeCombate = dado.ehDeCombate;
+                const combateTexto = ehDeCombate ? 'Sim' : 'Não';
+                const combateClass = ehDeCombate ? 'combate-sim' : 'combate-nao';
+                infoForaCardHtml += `<div class="pet-combate"><span class="combate-label">⚔️ Pet de Combate:</span> <span class="combate-valor ${combateClass}">${combateTexto}</span></div>`;
+            }
+            
+            // Capturável
+            if (dado.ehCapturavel !== undefined) {
+                const ehCapturavel = dado.ehCapturavel;
+                const capturavelTexto = ehCapturavel ? 'Sim' : 'Não';
+                const capturavelClass = ehCapturavel ? 'capturavel-sim' : 'capturavel-nao';
+                infoForaCardHtml += '<div class="pet-capturavel">';
+                infoForaCardHtml += '<span class="capturavel-label">🪤 Capturável:</span> ';
+                infoForaCardHtml += `<span class="capturavel-valor ${capturavelClass}">${capturavelTexto}</span>`;
+                infoForaCardHtml += '</div>';
+            }
+            
+            // Negociável
+            if (dado.ehNegociavel !== undefined) {
+                const ehNegociavel = dado.ehNegociavel;
+                const negociavelTexto = ehNegociavel ? 'Sim' : 'Não';
+                const negociavelClass = ehNegociavel ? 'negociavel-sim' : 'negociavel-nao';
+                infoForaCardHtml += '<div class="pet-negociavel">';
+                infoForaCardHtml += '<span class="negociavel-label">⚖️ Negociável:</span> ';
+                infoForaCardHtml += `<span class="negociavel-valor ${negociavelClass}">${negociavelTexto}</span>`;
+                infoForaCardHtml += '</div>';
+            }
+            
+            // Onde obter
+            if (dado.ondeObter && dado.ondeObter !== 'Informação não disponível') {
+                const ondeObterEscapado = escapeHtml(dado.ondeObter);
+                infoForaCardHtml += `<div class="pet-onde-obter"><span class="onde-obter-label">🔍 Como obter:</span> <span class="onde-obter-valor">${ondeObterEscapado}</span></div>`;
+            }
+        }
+        
+        // Botão de estratégia apenas para pets de combate
+        let estrategiaHtml = '';
+        if (ehDeCombate) {
+            estrategiaHtml = `
+                <button class="btn-ia" data-titulo="${escapeHtml(titulo)}" data-tipo="${escapeHtml(tipo)}" data-resposta-id="${idResposta}" onclick="toggleEstrategia(this)" aria-expanded="false">
+                   <span class="btn-ia-texto">🔮 Revelar Estratégia de Batalha</span>
+                   <span class="btn-ia-icone">▼</span>
+                </button>
+                <div id="${idResposta}" class="box-resposta-ia collapsed"></div>
+            `;
+        }
         
         resultadosHtml += `
             <div class="item-resultado">
@@ -245,16 +414,15 @@ function renderizarPets(dados, section) {
                     ${imagemHtml}
                     <div class="pet-info">
                         <div class="pet-nome-container">
-                            <h2><a href="${link}" target="_blank">${titulo} 🔗</a></h2>
+                            <h2><a href="${link}" target="_blank">${tituloHtml} 🔗</a></h2>
                         </div>
-                        <span class="tipo-pet">${tipo}</span>
+                        <span class="tipo-pet">${tipoHtml}</span>
                     </div>
                 </div>
                 <p class="descricao-meta">${descricao}</p>
-                <button class="btn-ia" onclick="gerarEstrategia('${tituloEscapado}', '${tipoEscapado}', '${idResposta}')">
-                   🔮 Revelar Estratégia de Batalha
-                </button>
-                <div id="${idResposta}" class="box-resposta-ia"></div>
+                ${infoForaCardHtml}
+                ${infoAdicionalHtml}
+                ${estrategiaHtml}
             </div>
         `;
     }
@@ -265,6 +433,41 @@ function renderizarPets(dados, section) {
     
     return resultadosHtml;
 }
+
+/**
+ * Alterna a exibição dos atributos/habilidades do pet (expandir/contrair)
+ * Função global para ser acessível via onclick
+ */
+window.toggleAtributos = function(infoId) {
+    const container = document.getElementById(infoId);
+    if (!container) return;
+    
+    const button = container.previousElementSibling;
+    if (!button || !button.classList.contains('btn-expandir-atributos')) return;
+    
+    const isExpanded = container.classList.contains('expanded');
+    const textoElement = button.querySelector('.btn-expandir-texto');
+    const iconeElement = button.querySelector('.btn-expandir-icone');
+    
+    // Mantém o texto original (Habilidades ou Atributos)
+    const textoOriginal = textoElement ? textoElement.textContent : 'Habilidades';
+    
+    if (isExpanded) {
+        // Contrair
+        container.classList.remove('expanded');
+        container.classList.add('collapsed');
+        button.setAttribute('aria-expanded', 'false');
+        if (textoElement) textoElement.textContent = textoOriginal;
+        if (iconeElement) iconeElement.textContent = '▼';
+    } else {
+        // Expandir
+        container.classList.remove('collapsed');
+        container.classList.add('expanded');
+        button.setAttribute('aria-expanded', 'true');
+        if (textoElement) textoElement.textContent = textoOriginal;
+        if (iconeElement) iconeElement.textContent = '▲';
+    }
+};
 
 async function pesquisar() {
     const section = document.getElementById("resultados-pesquisa");
@@ -292,9 +495,10 @@ async function pesquisar() {
         
         console.log(`📤 Enviando prompt: "${prompt}"`);
         
+        // A função gerarConteudoPeloBackend retorna uma string JSON (data.text)
         let text = await gerarConteudoPeloBackend(prompt);
-
         
+        // Limpa a string se vier com markdown code blocks
         text = text.trim();
         if (text.startsWith("```json")) {
             text = text.replace(/^```json\s*/, "").replace(/\s*```$/, "");
@@ -302,9 +506,12 @@ async function pesquisar() {
             text = text.replace(/^```\s*/, "").replace(/\s*```$/, "");
         }
 
+        // Faz o parse da string JSON
         const dados = JSON.parse(text);
         
         console.log('📦 Dados recebidos:', dados);
+        console.log('📦 Tipo dos dados:', Array.isArray(dados) ? 'Array' : typeof dados);
+        console.log('📦 Quantidade:', Array.isArray(dados) ? dados.length : 'N/A');
         
         // Se houver mais de 9 pets, usa paginação
         if (dados.length > 9) {
@@ -356,10 +563,55 @@ async function pesquisar() {
     }
 }
 
-async function gerarEstrategia(nomePet, tipoPet, idElemento) {
-    let divResposta = document.getElementById(idElemento);
+/**
+ * Alterna a exibição da estratégia de batalha (expandir/contrair)
+ * Função global para ser acessível via onclick
+ */
+window.toggleEstrategia = function(button) {
+    const idElemento = button.dataset.respostaId;
+    const divResposta = document.getElementById(idElemento);
+    
+    if (!divResposta) return;
+    
+    const isExpanded = divResposta.classList.contains('expanded');
+    const textoElement = button.querySelector('.btn-ia-texto');
+    const iconeElement = button.querySelector('.btn-ia-icone');
+    
+    if (isExpanded) {
+        // Contrair
+        divResposta.classList.remove('expanded');
+        divResposta.classList.add('collapsed');
+        button.setAttribute('aria-expanded', 'false');
+        if (textoElement) textoElement.textContent = '🔮 Revelar Estratégia de Batalha';
+        if (iconeElement) iconeElement.textContent = '▼';
+    } else {
+        // Expandir - se ainda não carregou, carrega a estratégia
+        if (!divResposta.dataset.carregado) {
+            gerarEstrategia(button.dataset.titulo, button.dataset.tipo, idElemento, button);
+        } else {
+            divResposta.classList.remove('collapsed');
+            divResposta.classList.add('expanded');
+            button.setAttribute('aria-expanded', 'true');
+            if (textoElement) textoElement.textContent = '🔮 Ocultar Estratégia de Batalha';
+            if (iconeElement) iconeElement.textContent = '▲';
+        }
+    }
+};
 
-    divResposta.style.display = "block";
+async function gerarEstrategia(nomePet, tipoPet, idElemento, button) {
+    let divResposta = document.getElementById(idElemento);
+    const textoElement = button ? button.querySelector('.btn-ia-texto') : null;
+    const iconeElement = button ? button.querySelector('.btn-ia-icone') : null;
+
+    // Expande o container
+    divResposta.classList.remove('collapsed');
+    divResposta.classList.add('expanded');
+    if (button) {
+        button.setAttribute('aria-expanded', 'true');
+        if (textoElement) textoElement.textContent = '🔮 Ocultar Estratégia de Batalha';
+        if (iconeElement) iconeElement.textContent = '▲';
+    }
+    
     divResposta.innerHTML = "🧙‍♂️ Consultando os espíritos ancestrais... (Aguarde)";
 
     try {
@@ -386,6 +638,7 @@ async function gerarEstrategia(nomePet, tipoPet, idElemento) {
         texto = texto.replace(/\n/g, '<br>');
 
         divResposta.innerHTML = texto;
+        divResposta.dataset.carregado = 'true';
 
     } catch (error) {
         console.error("Erro ao gerar estratégia:", error);
