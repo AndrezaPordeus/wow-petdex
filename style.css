@@ -696,7 +696,7 @@ button:hover {
     background-color: var(--cor-azul-alianca);
     border: 1px solid var(--cor-azul-borda);
     width: 100%;
-    margin-top: auto;
+    margin-top: 15px;
     display: flex;
     align-items: center;
     justify-content: center;
