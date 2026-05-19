@@ -473,10 +473,12 @@ async function pesquisar() {
     const section = document.getElementById("resultados-pesquisa");
     const campoPesquisa = document.getElementById("campo-pesquisa").value.toLowerCase();
     const filtroTipo = document.getElementById("filtro-tipo").value;
+    const elementoCombate = document.getElementById("filtro-combate");
+    const filtroCombate = elementoCombate ? elementoCombate.value : "";
 
     // Permite busca apenas por tipo ou por nome, ou ambos
-    if (!campoPesquisa && !filtroTipo) {
-        section.innerHTML = `<p class="mensagem-inicial">Você precisa digitar o nome de uma criatura ou selecionar um tipo para consultar o grimório.</p>`;
+    if (!campoPesquisa && !filtroTipo && !filtroCombate) {
+        section.innerHTML = `<p class="mensagem-inicial">Você precisa digitar o nome de uma criatura, selecionar um tipo ou filtrar por combate para consultar o grimório.</p>`;
         return;
     }
 
@@ -491,6 +493,10 @@ async function pesquisar() {
         if (filtroTipo) {
             if (prompt) prompt += ' ';
             prompt += `tipo: "${filtroTipo}"`;
+        }
+        if (filtroCombate) {
+            if (prompt) prompt += ' ';
+            prompt += `combate: "${filtroCombate}"`;
         }
         
         console.log(`📤 Enviando prompt: "${prompt}"`);
@@ -659,6 +665,8 @@ function voltarPaginaInicial() {
     // Limpa os campos de busca
     document.getElementById("campo-pesquisa").value = '';
     document.getElementById("filtro-tipo").value = '';
+    const elementoCombate = document.getElementById("filtro-combate");
+    if (elementoCombate) elementoCombate.value = '';
     
     // Recarrega os pets iniciais na página 1
     carregarPetsIniciais(1);

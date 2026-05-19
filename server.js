@@ -776,7 +776,7 @@ function extrairUrlImagem(mediaData) {
  * @param {string} tipoFiltro - Filtro opcional por tipo
  * @returns {Promise<Array>} Array com o pet encontrado ou array vazio
  */
-async function buscarPetPorId(petId, tipoFiltro = null) {
+async function buscarPetPorId(petId, tipoFiltro = null, combateFiltro = null) {
   try {
     const token = await obterAccessToken();
     const baseUrl = `https://${BLIZZARD_REGION}.api.blizzard.com/data/wow`;
@@ -872,13 +872,13 @@ async function processarPetIndividual(pet, petData, token, finalNamespace, worki
   return null;
 }
 
-async function buscarPetsNaBlizzard(termoBusca, tipoFiltro = null) {
+async function buscarPetsNaBlizzard(termoBusca, tipoFiltro = null, combateFiltro = null) {
   try {
     // Se o termo de busca é um número (ID), busca diretamente pelo ID
     const termoNumero = parseInt(termoBusca);
     if (!isNaN(termoNumero) && termoBusca.trim() === termoNumero.toString()) {
       console.log(`🔍 Termo de busca é um ID numérico: ${termoNumero}. Buscando diretamente pelo ID...`);
-      const petPorId = await buscarPetPorId(termoNumero, tipoFiltro);
+      const petPorId = await buscarPetPorId(termoNumero, tipoFiltro, combateFiltro);
       if (petPorId && petPorId.length > 0) {
         console.log(`✅ Pet encontrado diretamente pelo ID ${termoNumero}`);
         return petPorId;
@@ -970,7 +970,7 @@ async function buscarPetsNaBlizzard(termoBusca, tipoFiltro = null) {
       );
       // Se há filtro por tipo, busca TODOS os pets que correspondem ao termo
       // Caso contrário, limita a 50 resultados
-      if (tipoFiltro) {
+      if (tipoFiltro || combateFiltro) {
         console.log(`Filtrado por nome "${termoBusca}" com filtro por tipo. Buscando TODOS os ${petsFiltrados.length} pets encontrados`);
         // Não aplica slice, busca todos que correspondem ao termo
       } else {
@@ -980,7 +980,7 @@ async function buscarPetsNaBlizzard(termoBusca, tipoFiltro = null) {
     } else {
       // Se não há termo de busca mas há filtro por tipo, busca TODOS os pets
       // Caso contrário, limita a 200 resultados
-      if (tipoFiltro) {
+      if (tipoFiltro || combateFiltro) {
         // Busca todos os pets quando há filtro por tipo (sem limite)
         console.log(`Sem termo de busca, mas com filtro por tipo. Buscando TODOS os ${pets.length} pets disponíveis`);
         petsFiltrados = pets; // Não aplica slice, busca todos
@@ -1592,11 +1592,21 @@ async function buscarPetsNaBlizzard(termoBusca, tipoFiltro = null) {
         return match;
       });
       console.log(`Filtrado por tipo "${tipoFiltro}": ${petsValidos.length} de ${antesFiltro} pets encontrados`);
-      // Quando há filtro por tipo, retorna TODOS os pets encontrados desse tipo (SEM LIMITE)
-      console.log(`✅ Retornando TODOS os ${petsValidos.length} pets do tipo "${tipoFiltro}"`);
-      return petsValidos;
     }
     
+    // Aplica filtro por combate se especificado
+    if (combateFiltro && combateFiltro.trim() !== '') {
+      const antesFiltro = petsValidos.length;
+      const querCombate = combateFiltro.toLowerCase() === 'sim';
+      petsValidos = petsValidos.filter(pet => pet.ehDeCombate === querCombate);
+      console.log(`Filtrado por combate "${combateFiltro}": ${petsValidos.length} de ${antesFiltro} pets encontrados`);
+    }
+
+    if ((tipoFiltro && tipoFiltro.trim() !== '') || (combateFiltro && combateFiltro.trim() !== '')) {
+      console.log(`✅ Retornando TODOS os ${petsValidos.length} pets com os filtros aplicados`);
+      return petsValidos;
+    }
+
     // Limita os resultados finais apenas quando não há filtro por tipo.
     // Se um filtro de tipo foi usado, todos os resultados já foram retornados.
     // O limite de 50 já foi aplicado anteriormente se a busca foi apenas por nome.
@@ -2341,17 +2351,20 @@ app.post("/api/busca", async (req, res) => {
     // Extrai o termo de busca e o tipo do prompt
     const matchTermo = prompt.match(/termo:\s*"([^"]+)"/i);
     const matchTipo = prompt.match(/tipo:\s*"([^"]+)"/i);
+    const matchCombate = prompt.match(/combate:\s*"([^"]+)"/i);
     const termoBusca = matchTermo ? matchTermo[1] : '';
     const tipoFiltro = matchTipo ? matchTipo[1] : null;
+    const combateFiltro = matchCombate ? matchCombate[1] : null;
     
     console.log(`📋 Prompt recebido: "${prompt}"`);
     console.log(`🔍 Termo de busca extraído: "${termoBusca}"`);
     console.log(`🏷️ Tipo filtro extraído: "${tipoFiltro || 'nenhum'}"`);
+    console.log(`⚔️ Combate filtro extraído: "${combateFiltro || 'nenhum'}"`);
 
     console.log(`\n🔍 === INICIANDO BUSCA ===`);
-    console.log(`Termo: "${termoBusca}" | Tipo: "${tipoFiltro || 'nenhum'}"`);
+    console.log(`Termo: "${termoBusca}" | Tipo: "${tipoFiltro || 'nenhum'}" | Combate: "${combateFiltro || 'nenhum'}"`);
     
-    const pets = await buscarPetsNaBlizzard(termoBusca, tipoFiltro);
+    const pets = await buscarPetsNaBlizzard(termoBusca, tipoFiltro, combateFiltro);
     
     console.log(`\n✅ === RESULTADO DA BUSCA ===`);
     console.log(`Total de pets retornados: ${pets ? pets.length : 'NULL/UNDEFINED'}`);
