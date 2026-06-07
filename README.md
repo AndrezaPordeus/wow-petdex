@@ -1,19 +1,17 @@
-# Onde acessar: https://wow-petdex-x1a6.onrender.com/
-
-# 📖 WoW Pet Tracker
+# WoW Pet Tracker
 
 `WoW Pet Tracker` é uma enciclopédia de mascotes de batalha do World of Warcraft que utiliza dados oficiais da **Blizzard API**. A aplicação permite aos usuários pesquisar por mascotes de batalha e obter informações detalhadas, além de dicas e estratégias baseadas nos tipos de pets.
 
 A interface é temática e inspirada no universo do jogo, proporcionando uma experiência imersiva para os jogadores.
 
-## ✨ Funcionalidades
+## Funcionalidades
 
 - **Busca de Mascotes:** Pesquise mascotes por nome usando dados oficiais da Blizzard API.
 - **Informações Detalhadas:** Veja informações básicas sobre as mascotes encontradas, incluindo tipo e descrição.
 - **Estratégias de Batalha:** Obtenha dicas e estratégias baseadas nos tipos de pets e suas vantagens/desvantagens.
 - **Interface Temática:** Design sombrio e elementos que remetem ao universo de World of Warcraft.
 
-## 🛠️ Tecnologias Utilizadas
+## Tecnologias Utilizadas
 
 Este projeto foi construído com as seguintes tecnologias:
 
