@@ -410,19 +410,23 @@ function renderizarPets(dados, section) {
         
         resultadosHtml += `
             <div class="item-resultado">
-                <div class="pet-header">
-                    ${imagemHtml}
-                    <div class="pet-info">
-                        <div class="pet-nome-container">
-                            <h2><a href="${link}" target="_blank">${tituloHtml} 🔗</a></h2>
+                <div class="pet-card-topo">
+                    <div class="pet-header">
+                        ${imagemHtml}
+                        <div class="pet-info">
+                            <div class="pet-nome-container">
+                                <h2><a href="${link}" target="_blank">${tituloHtml} 🔗</a></h2>
+                            </div>
+                            <span class="tipo-pet">${tipoHtml}</span>
                         </div>
-                        <span class="tipo-pet">${tipoHtml}</span>
                     </div>
+                    <p class="descricao-meta">${descricao}</p>
                 </div>
-                <p class="descricao-meta">${descricao}</p>
-                ${infoForaCardHtml}
-                ${infoAdicionalHtml}
-                ${estrategiaHtml}
+                <div class="pet-card-base">
+                    ${infoForaCardHtml}
+                    ${infoAdicionalHtml}
+                    ${estrategiaHtml}
+                </div>
             </div>
         `;
     }

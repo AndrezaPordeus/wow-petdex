@@ -12,7 +12,8 @@
     --cor-azul-alianca: #1e3a8a;
     --cor-azul-alianca-hover: #2563eb;
     --cor-azul-borda: #4facfe;
-    --cor-tipo-pet-fundo: #2c3e50;
+    --cor-tipo-pet-fundo: rgba(93, 173, 226, 0.15);
+    --cor-tipo-pet-borda: rgba(93, 173, 226, 0.3);
     --cor-tipo-pet-texto: #5dade2;
     --cor-texto-ia: #a7f3d0;
 }
@@ -71,7 +72,7 @@ main {
 .busca-container {
     display: flex;
     flex-direction: row;
-    gap: 10px;
+    gap: 12px;
     margin: 0 auto 40px;
     align-items: center;
     justify-content: center;
@@ -81,49 +82,68 @@ main {
 }
 
 #campo-pesquisa {
-    padding: 15px;
+    height: 48px;
+    padding: 0 16px;
     flex: 1;
     min-width: 200px;
-    border-radius: 5px;
-    border: 1px solid var(--cor-borda-cinza);
+    border-radius: 8px;
+    border: 1px solid rgba(179, 136, 54, 0.3);
     background-color: var(--cor-fundo-secundario);
     color: var(--cor-texto-principal);
     font-size: 1rem;
+    transition: all 0.3s ease;
 }
 
 .filtro-tipo {
-    padding: 15px;
-    border-radius: 5px;
-    border: 1px solid var(--cor-borda-cinza);
+    height: 48px;
+    padding: 0 40px 0 16px;
+    border-radius: 8px;
+    border: 1px solid rgba(179, 136, 54, 0.3);
     background-color: var(--cor-fundo-secundario);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23b38836' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 16px center;
     color: var(--cor-texto-principal);
     font-size: 1rem;
     font-family: 'Open Sans', sans-serif;
     cursor: pointer;
     min-width: 180px;
-    transition: 0.3s;
+    transition: all 0.3s ease;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
 }
 
+#campo-pesquisa:hover,
 .filtro-tipo:hover {
-    border-color: var(--cor-dourado-principal);
+    border-color: rgba(179, 136, 54, 0.8);
 }
 
+#campo-pesquisa:focus,
 .filtro-tipo:focus {
     outline: none;
     border-color: var(--cor-amarelo-brilhante);
-    box-shadow: 0 0 10px rgba(255, 209, 0, 0.3);
+    box-shadow: 0 0 10px rgba(255, 209, 0, 0.2), inset 0 0 5px rgba(255, 209, 0, 0.1);
 }
 
 button {
-    padding: 15px 25px;
+    padding: 12px 24px;
     background-color: var(--cor-vermelho-horda);
     color: var(--cor-texto-principal);
     border: 1px solid var(--cor-dourado-principal);
-    border-radius: 5px;
+    border-radius: 8px;
     cursor: pointer;
     font-family: 'Cinzel', serif;
     font-weight: bold;
     transition: 0.3s;
+}
+
+.busca-container button {
+    height: 48px;
+    padding: 0 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 button:hover {
@@ -145,9 +165,9 @@ button:hover {
 
 .item-resultado {
     background: var(--cor-fundo-secundario);
-    border: 1px solid var(--cor-borda-cinza);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-left: 4px solid var(--cor-dourado-principal);
-    padding: 20px;
+    padding: 24px;
     border-radius: 8px;
     box-shadow: 0 4px 8px #00000080;
     position: relative;
@@ -156,6 +176,19 @@ button:hover {
     height: 100%;
     display: flex;
     flex-direction: column;
+    justify-content: space-between;
+}
+
+.pet-card-topo {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.pet-card-base {
+    display: flex;
+    flex-direction: column;
+    margin-top: auto;
 }
 
 /* Efeito de brilho sutil no card */
@@ -175,7 +208,9 @@ button:hover {
 }
 
 .item-resultado:hover {
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.9);
+    border-color: rgba(179, 136, 54, 0.4);
+    border-left-color: var(--cor-amarelo-brilhante);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.9), 0 0 15px rgba(179, 136, 54, 0.15);
     transform: translateY(-2px);
 }
 
@@ -191,7 +226,7 @@ button:hover {
 .pet-imagem {
     width: 70px;
     height: 70px;
-    border-radius: 10px;
+    border-radius: 8px;
     border: 2px solid var(--cor-dourado-principal);
     box-shadow: 
         0 4px 8px rgba(0, 0, 0, 0.6),
@@ -270,7 +305,7 @@ button:hover {
 .pet-imagem-placeholder {
     width: 70px;
     height: 70px;
-    border-radius: 10px;
+    border-radius: 8px;
     border: 2px solid var(--cor-dourado-principal);
     background: linear-gradient(135deg, var(--cor-fundo-terciario) 0%, var(--cor-fundo-secundario) 100%);
     display: flex;
@@ -289,7 +324,7 @@ button:hover {
     left: -3px;
     right: -3px;
     bottom: -3px;
-    border-radius: 15px;
+    border-radius: 12px;
     background: linear-gradient(135deg, 
         rgba(179, 136, 54, 0.4) 0%, 
         rgba(255, 209, 0, 0.2) 50%, 
@@ -315,6 +350,7 @@ button:hover {
     color: var(--cor-amarelo-brilhante);
     margin: 0;
     line-height: 1.2;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8), 0 0 10px rgba(255, 209, 0, 0.2);
 }
 
 .item-resultado a {
@@ -325,9 +361,11 @@ button:hover {
 .tipo-pet {
     background-color: var(--cor-tipo-pet-fundo);
     color: var(--cor-tipo-pet-texto);
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-size: 0.8rem;
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--cor-tipo-pet-borda);
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
     text-transform: uppercase;
     font-weight: bold;
     margin-bottom: 10px;
@@ -341,7 +379,6 @@ button:hover {
     margin-bottom: 15px;
     line-height: 1.6;
     color: var(--cor-texto-secundario);
-    flex-grow: 1;
 }
 
 /* Informações adicionais do pet */
@@ -439,9 +476,11 @@ button:hover {
 .pet-sem-combate {
     padding: 20px;
     text-align: center;
-    background: linear-gradient(135deg, var(--cor-fundo-secundario) 0%, var(--cor-fundo-terciario) 100%);
+    background: rgba(27, 31, 39, 0.5);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
     border-radius: 8px;
-    border: 1px solid var(--cor-borda-cinza);
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .mensagem-sem-combate {
@@ -465,9 +504,11 @@ button:hover {
     align-items: flex-start;
     gap: 12px;
     padding: 12px;
-    background: linear-gradient(135deg, var(--cor-fundo-secundario) 0%, var(--cor-fundo-terciario) 100%);
+    background: rgba(27, 31, 39, 0.5);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
     border-radius: 8px;
-    border: 1px solid var(--cor-borda-cinza);
+    border: 1px solid rgba(255, 255, 255, 0.05);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -538,8 +579,11 @@ button:hover {
 .pet-onde-obter {
     margin-top: 12px;
     padding: 12px;
-    background: linear-gradient(135deg, var(--cor-fundo-secundario) 0%, var(--cor-fundo-terciario) 100%);
+    background: rgba(27, 31, 39, 0.5);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
     border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
     border-left: 3px solid var(--cor-amarelo-brilhante);
     font-size: 0.9rem;
     line-height: 1.6;
