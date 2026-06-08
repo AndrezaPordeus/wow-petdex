@@ -1,6 +1,6 @@
-# WoW Pet Tracker
+# WoW Petdex
 
-`WoW Pet Tracker` é uma enciclopédia de mascotes de batalha do World of Warcraft que utiliza dados oficiais da **Blizzard API**. A aplicação permite aos usuários pesquisar por mascotes de batalha e obter informações detalhadas, além de dicas e estratégias baseadas nos tipos de pets.
+`WoW Petdex` é uma enciclopédia de mascotes de batalha do World of Warcraft que utiliza dados oficiais da **Blizzard API**. A aplicação permite aos usuários pesquisar por mascotes de batalha e obter informações detalhadas, além de dicas e estratégias baseadas nos tipos de pets.
 
 A interface é temática e inspirada no universo do jogo, proporcionando uma experiência imersiva para os jogadores.
 
